@@ -1,0 +1,35 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net4.8.1</TargetFramework>
+    <IsPackable>false</IsPackable>
+    <UseWindowsForms>true</UseWindowsForms>
+
+    <!--
+      Override OutputPath to keep test framework DLLs out of bin/release/Components/.
+      The shared components/Directory.Build.props points all output at $(BuildPath)\Components,
+      which LiveSplit scans for plugins at startup. Without this override, building the
+      test project deposits xunit + TestPlatform + System.Text.Json + LiveSplit.Core etc.
+      into the production-component folder (~3 MB of test framework DLLs alongside the
+      shipping LiveSplit.PinnedSplits.dll). Pointing the test project at a project-local
+      bin/ keeps the Components folder clean.
+    -->
+    <OutputPath>bin\$(Configuration.ToLowerInvariant())\</OutputPath>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\LiveSplit.PinnedSplits\LiveSplit.PinnedSplits.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.10.0" />
+    <PackageReference Include="xunit" Version="2.9.0" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.8.2" PrivateAssets="all" />
+    <!-- Transitive runtime dep of LiveSplit.Core (used by UiTextCatalog).
+         The component csproj uses Private="false" on its Core reference, so this DLL
+         is not deployed to the test output directory by default. -->
+    <PackageReference Include="System.Text.Json" Version="9.0.4" />
+  </ItemGroup>
+
+</Project>
